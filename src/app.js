@@ -1,16 +1,22 @@
-/**
- * Welcome to Pebble.js!
- *
- * This is where you write your app.
- */
+/** Welcome to John Sampson's GroupMe app for the Pebble Smart Watch */
 
 var UI = require('ui');
 var Vector2 = require('vector2');
 var splashWindow = new UI.Window();
 
+// these are the variables for the tokens. 
+// client_id comes from an API application from https://dev.groupme.com/applications
+// Make sure that, when you make an API application, you use the callback url 'pebblejs://close#'
+// the API_TOKEN is returned when the user goes to the config page and enters their account stuff
 var API_TOKEN = 'null';
 var client_id = 'REPLACE THIS WITH YOUR DEVELOPER REDIRECT URL CLIENT_ID';
-// Set a configurable with just the close callback
+
+
+// this configures the API_TOKEN
+// When the user presses the config button in the Pebble iPhone/Android app, it goes to GroupMe's oauth page
+// if you configured it correctly, it sends a callback like 'pebblejs://close#?access_token=ACCESS_TOKEN'
+// I just used substring to get out the actual key. I'm sure you can do it better.
+// It then uses Pebble's Settings library to save it in the App for later use. 
 var Settings = require('settings');
 Settings.config(
   { url: 'https://oauth.groupme.com/oauth/authorize?client_id=' + client_id },
@@ -25,7 +31,7 @@ Settings.config(
 );
 API_TOKEN = Settings.data('ID');
 
-// Text element to inform user
+// Splash screen while loading. 
 var text = new UI.Text({
   position: new Vector2(0, 0),
   size: new Vector2(144, 168),
@@ -41,6 +47,7 @@ var text = new UI.Text({
 splashWindow.add(text);
 splashWindow.show();
 
+// this function parses the groups that the user is a part of, and returns them
 var parseFeed = function(data){
   var groups = [];
   console.log('raw data: ' + data.contents);
@@ -55,6 +62,8 @@ var parseFeed = function(data){
   }
   return groups;
 };
+
+// this parses the messages for the group the user selected, and returns them
 var parseMessages = function(data){
   var messages = [];
   console.log('raw data: ' + data.contents);
@@ -69,6 +78,12 @@ var parseMessages = function(data){
   }
   return messages;
 };
+
+// this is the ajax stuff
+// the main ajax block requests the GroupMe groups for the user, then shows them
+// when the user hits the select button, it launches another ajax block which:
+// requests the messages from the API for that group and displays them.
+// when the user hits the select button, it opens a new card with the full name and message. 
 var ajax = require('ajax');
 ajax(
   {
