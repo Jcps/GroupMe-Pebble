@@ -8,12 +8,29 @@ var UI = require('ui');
 var Vector2 = require('vector2');
 var splashWindow = new UI.Window();
 
+var API_TOKEN = 'null';
+var client_id = 'REPLACE THIS WITH YOUR DEVELOPER REDIRECT URL CLIENT_ID';
+// Set a configurable with just the close callback
+var Settings = require('settings');
+Settings.config(
+  { url: 'https://oauth.groupme.com/oauth/authorize?client_id=' + client_id },
+  function(e) {
+    console.log('closed configurable');
+    
+    console.log(String(JSON.stringify(e.options).substring(18,50)));
+    
+    Settings.data('ID', String(JSON.stringify(e.options).substring(18,50)));
+    console.log(API_TOKEN);
+  }
+);
+API_TOKEN = Settings.data('ID');
+
 // Text element to inform user
 var text = new UI.Text({
   position: new Vector2(0, 0),
   size: new Vector2(144, 168),
   text:'Downloading GroupMe data...',
-  font:'GOTHIC_28_BOLD',
+  font:'GOTHIC_12_BOLD',
   color:'black',
   textOverflow:'wrap',
   textAlign:'center',
@@ -51,14 +68,11 @@ var parseMessages = function(data){
     });
   }
   return messages;
-}
-/**
-  AJAX STUFF
-*/
+};
 var ajax = require('ajax');
 ajax(
   {
-    url: 'https://api.groupme.com/v3/groups?token=INSERT TOKEN HERE',
+    url: 'https://api.groupme.com/v3/groups?token=' + API_TOKEN,
     type: 'json'
   },
   function(data, status, request) {
@@ -82,7 +96,7 @@ ajax(
       console.log('user slelected: ' + e.item.group_id);
       ajax2(
         {
-          url: 'https://api.groupme.com/v3/groups/' + e.item.group_id + '/messages?token=INSERT TOKEN HERE',
+          url: 'https://api.groupme.com/v3/groups/' + e.item.group_id + '/messages?token=' + API_TOKEN,
           type: 'json'
         },
         function(data, status, request){
@@ -120,5 +134,3 @@ ajax(
     console.log('The ajax request failed: ' + error);
   }
 );
-
-
